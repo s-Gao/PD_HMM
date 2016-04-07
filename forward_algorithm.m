@@ -1,4 +1,4 @@
-function [ alpha ] = forward_algorithm( A,B,pi,Observe )
+function [ ln_alpha ] = forward_algorithm( A,B,pi,Observe )
 %This function implements the forward algorithm
 %Input is the model including A,B and pi, in which A is the state
 %transition matrix, B is the output probability matrix and pi is the
@@ -13,17 +13,17 @@ function [ alpha ] = forward_algorithm( A,B,pi,Observe )
 % alpha is the output of this function. It is a l*m matrix.
 
 [m,n] = size(B);
-if(m ~= size(A,1) || m~= size(A,2))d
+if(m ~= size(A,1) || m~= size(A,2))
     disp('wrong input');
     return ;
 end
 l = length(Observe);
-alpha = zeros(l,m);
-alpha(1,:) = pi.*normpdf(Observe(1),B(:,1),B(:,2));
+ln_alpha = zeros(l,m);
+ln_alpha(1,:) = log(pi.*normpdf(Observe(1),B(:,1),B(:,2)));
 for t = 2:l
-    alpha(t,:) = (alpha(t-1,:)*A)'.*normpdf(Observe(t),B(:,1),B(:,2));
-    alpha(t,:)
-    pause;
+    log_vector = ln_sum_matrix(bsxfun(@plus,ln_alpha(t-1,:)',log(A)) ,1);%every column needs a log_sum, so log_vector is a row vector
+    ln_alpha(t,:) = bsxfun(@plus,log_vector',log(normpdf(Observe(t),B(:,1),B(:,2)))');
+    %ln_alpha(t,:) = (ln_alpha(t-1,:)*A)'.*normpdf(Observe(t),B(:,1),B(:,2));
 end
 
 

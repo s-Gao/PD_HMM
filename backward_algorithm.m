@@ -1,4 +1,4 @@
-function [ beta ] = backward_algorithm( A,B,pi,Observe )
+function [ ln_beta ] = backward_algorithm( A,B,pi,Observe )
 %This function implements the forward algorithm
 %Input is the model including A,B and pi, in which A is the state
 %transition matrix, B is the output probability matrix and pi is the
@@ -17,12 +17,13 @@ if(m ~= size(A,1) || m~= size(A,2))
     return ;
 end
 l = length(Observe);
-beta = zeros(l,m);
-beta(l,:) = ones(1,m);
+ln_beta = zeros(l,m);
+ln_beta(l,:) = log(ones(1,m));
 
 t = l-1;
 while t>0
-beta(t,:) = normpdf(Observe(t+1),B(:,1),B(:,2))'.*beta(t+1,:) * A;
+ln_beta(t,:) = ln_sum_matrix(bsxfun(@plus, bsxfun(@plus,log(normpdf(Observe(t+1),B(:,1),B(:,2))),ln_beta(t+1,:)'),log(A)),1 );
+%beta(t,:) = normpdf(Observe(t+1),B(:,1),B(:,2))'.*beta(t+1,:) * A;
 t = t-1;
 end
 
